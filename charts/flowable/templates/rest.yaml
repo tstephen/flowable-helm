@@ -59,9 +59,45 @@ spec:
           timeoutSeconds: {{ .Values.rest.livenessProbe.timeoutSeconds }}
           successThreshold: {{ .Values.rest.livenessProbe.successThreshold }}
           failureThreshold: {{ .Values.rest.livenessProbe.failureThreshold }}
+        startupProbe:
+          httpGet:
+            path: {{ .Values.rest.contextPath }}/actuator/health
+            port: 8080
+            httpHeaders:
+            - name: Authorization
+              ### is using the default rest-admin:test
+              ### generate new with; echo -n "<username:<passwd>" | base64
+              #value: Basic cmVzdC1hZG1pbjp0ZXN0
+              value: Basic: {{-  printf "%s:%s" .Values.rest.admin.username .Values.rest.admin.password | b64enc }}
+          initialDelaySeconds: {{ .Values.rest.startupProbe.initialDelaySeconds }}
+          periodSeconds: {{ .Values.rest.startupProbe.periodSeconds }}
+          timeoutSeconds: {{ .Values.rest.startupProbe.timeoutSeconds }}
+          successThreshold: {{ .Values.rest.startupProbe.successThreshold }}
+          failureThreshold: {{ .Values.rest.startupProbe.failureThreshold }}
         envFrom:
         - configMapRef:
             name: {{ .Release.Name }}-{{ include "flowable.template" . }}-configmap
+        {{- if .Values.envVarsFromConfigMaps }}
+        {{- range .Values.envVarsFromConfigMaps }}
+        - configMapRef:
+          name: {{ . }}
+        {{- end }}
+        {{- end }}
+        {{- if .Values.envVarsFromSecrets }}
+        {{- range .Values.envVarsFromSecrets }}
+        - secretRef:
+          name: {{ . }}
+        {{- end }}
+        {{- end }}
+          {{- if .Values.envVarsExtra }}
+          {{- range $key, $value := .Values.envVarsExtra }}
+            - name: {{ $key }}
+              valueFrom:
+                secretKeyRef:
+            name: {{ $value.secretName }}
+            key: {{ $value.secretKey }}
+          {{- end }}
+          {{- end }}
         volumeMounts:
         resources:
 {{ toYaml .Values.rest.resources | indent 10 }}

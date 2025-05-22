@@ -61,6 +61,31 @@ rest:
     timeoutSeconds: 10
     successThreshold: 1
     failureThreshold: 10
+  startupProbe: # 60 + 10 * 30 = 6mins to start
+    initialDelaySeconds: 60
+    periodSeconds: 10
+    timeoutSeconds: 10
+    successThreshold: 1
+    failureThreshold: 30
+
+  ## Additional environment variables from ConfigMaps
+  envVarsFromConfigMaps: []
+    # - array-of
+    # - config-map-names
+
+  ## Additional environment variables from Secrets
+  envVarsFromSecrets: []
+    # - array-of
+    # - secret-names
+
+  ## Additional environment variables
+  envVarsExtra: []
+    # - name: FLOWABLE_REST_APP_CORS_ALLOWED_ORIGINS
+    #   valueFrom:
+    #     secretKeyRef:
+    #       name: flowable-rest-secrets
+    #       key: cors-allowed-origins
+Threshold: 30
 
 postgres:
   enabled: true
